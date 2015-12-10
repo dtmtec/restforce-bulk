@@ -13,9 +13,7 @@ module Restforce
         end
 
         def find(job_id, id)
-          response = Restforce::Bulk.client.perform_request(:get, "job/#{job_id}/batch/#{id}")
-
-          new(response.body.batchInfo)
+          new(job_id: job_id, id: id).tap(&:refresh)
         end
 
         def builder_class_for(content_type)
@@ -47,6 +45,12 @@ module Restforce
 
       def not_processed?
         state == 'Not Processed'
+      end
+
+      def refresh
+        response = Restforce::Bulk.client.perform_request(:get, "job/#{job_id}/batch/#{id}")
+
+        assign_attributes(response.body.batchInfo)
       end
 
       def results

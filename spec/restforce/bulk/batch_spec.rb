@@ -19,7 +19,7 @@ describe Restforce::Bulk::Batch, mock_restforce: true do
         xml.jobId                  job_id
         xml.createdDate            '2009-04-14T18:15:59.000Z'
         xml.systemModstamp         '2009-04-14T18:15:59.000Z'
-        xml.state                  'Open'
+        xml.state                  'Queued'
         xml.numberRecordsProcessed 0
       end
     end
@@ -96,6 +96,47 @@ describe Restforce::Bulk::Batch, mock_restforce: true do
       it { is_expected.to_not be_completed }
       it { is_expected.to_not be_failed }
       it { is_expected.to be_not_processed }
+    end
+  end
+
+  describe "#refresh" do
+    subject(:batch) { described_class.new(job_id: job_id, id: id, state: 'Queued') }
+
+    let(:job_id) { SecureRandom.hex(18) }
+    let(:id)     { SecureRandom.hex(18) }
+
+    let(:raw_response_body) do
+      build_bulk_xml(:batchInfo) do |xml|
+        xml.id                     id
+        xml.jobId                  job_id
+        xml.createdDate            '2009-04-14T18:15:59.000Z'
+        xml.systemModstamp         '2009-04-14T18:15:59.000Z'
+        xml.state                  'Completed'
+        xml.numberRecordsProcessed 10
+      end
+    end
+
+    it "retrieves batch info from salesforce using the given job_id and id" do
+      expect_restforce_request(:get, "job/#{job_id}/batch/#{id}").and_return(restforce_response)
+
+      batch.refresh
+    end
+
+    it "updates batch attributes" do
+      allow_restforce_request(:get, "job/#{job_id}/batch/#{id}").and_return(restforce_response)
+
+      batch.refresh
+
+      expect(batch.id).to                       eq(response_body.batchInfo.id)
+      expect(batch.job_id).to                   eq(response_body.batchInfo.jobId)
+      expect(batch.state).to                    eq(response_body.batchInfo.state)
+      expect(batch.created_date).to             eq(response_body.batchInfo.createdDate)
+      expect(batch.system_modstamp).to          eq(response_body.batchInfo.systemModstamp)
+      expect(batch.number_records_processed).to eq(response_body.batchInfo.numberRecordsProcessed)
+    end
+
+    it "retrieves updated data for the batch from salesforce" do
+
     end
   end
 
