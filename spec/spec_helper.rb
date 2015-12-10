@@ -1,7 +1,9 @@
 $LOAD_PATH.unshift File.expand_path('../../lib', __FILE__)
 
 require 'simplecov'
-SimpleCov.start
+SimpleCov.start do
+  add_filter "/spec/"
+end
 
 require 'bundler/setup'
 
@@ -12,7 +14,7 @@ module RestforceMockHelpers
   def restforce_client
     @restforce_client ||= double(Restforce, {
       authenticate!: true,
-      middleware: double('Middleware', response: true),
+      middleware: double('Middleware', insert_after: true, response: true),
       options: { api_version: '29.0', oauth_token: SecureRandom.hex }
     })
   end
@@ -27,7 +29,6 @@ module RestforceMockHelpers
 
   def mock_restforce_request(mock_type, method, path, data=nil, content_type=:xml, headers={})
     resulting_headers = {
-      'X-SFDC-Session' => restforce_client.options[:oauth_token],
       'Content-Type' => "#{mime_type_for(content_type)} ;charset=UTF-8"
     }.merge(headers)
 

@@ -17,6 +17,10 @@ module Restforce
       autoload :Csv, 'restforce/bulk/builder/csv'
     end
 
+    module Middleware
+      autoload :Authorization, 'restforce/bulk/middleware/authorization'
+    end
+
     MIME_TYPE_MAPPING = {
       csv: 'text/csv',
       xml: 'application/xml',
