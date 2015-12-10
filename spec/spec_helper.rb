@@ -45,9 +45,9 @@ module RestforceMockHelpers
     mock_restforce_request(:expect, method, path, data, content_type, headers)
   end
 
-  def build_bulk_xml(root, &block)
+  def build_bulk_xml(root, options={}, &block)
     Nokogiri::XML::Builder.new do |xml|
-      xml.send(root, xmlns: 'http://www.force.com/2009/06/asyncapi/dataload', &block)
+      xml.send(root, { xmlns: 'http://www.force.com/2009/06/asyncapi/dataload' }.merge(options), &block)
     end.to_xml
   end
 

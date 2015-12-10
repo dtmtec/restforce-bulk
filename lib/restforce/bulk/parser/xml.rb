@@ -16,6 +16,10 @@ module Restforce
           end
         end
 
+        def content_on(data)
+          data.queryResult
+        end
+
         protected
 
         def wrap_in_array(value)

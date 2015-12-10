@@ -5,6 +5,10 @@ module Restforce
         def results_on(data)
           data
         end
+
+        def content_on(data)
+          data
+        end
       end
     end
   end

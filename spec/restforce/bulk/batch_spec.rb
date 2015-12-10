@@ -30,7 +30,7 @@ describe Restforce::Bulk::Batch, mock_restforce: true do
       Restforce::Bulk::Batch.find(job_id, id)
     end
 
-    it "returns the job initialized with the returned attributes" do
+    it "returns the batch initialized with the returned attributes" do
       allow_restforce_request(:get, "job/#{job_id}/batch/#{id}").and_return(restforce_response)
 
       batch = Restforce::Bulk::Batch.find(job_id, id)
