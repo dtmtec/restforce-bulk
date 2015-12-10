@@ -20,7 +20,42 @@ Or install it yourself as:
 
 ## Usage
 
-TODO: Write usage instructions here
+### Query:
+
+    # Creating a query job and adding a batch, using CSV type
+    job   = Restforce::Bulk::Job.create(:query, 'Account', :csv)
+    batch = job.add_batch("select Id, Name from Account limit 10")
+
+    # wait for the batch to complete, then refresh data
+    batch.refresh
+    batch.completed? # => true
+
+    # query batches returns only one result
+    result = batch.results.first
+
+    # we can get the contents from the result
+    csv = result.content
+
+    # csv is a CSV::Table, now you can process it any way you want
+
+### CRUD operations
+
+    # Creating an upsert job, using XML type (default)
+    job = Restforce::Bulk::Job.create(:upsert, 'Account')
+
+    # Adding a batch
+    batch = job.add_batch([{ Name: "New Account" }, { Id: 'a0B29000000XGxf', Name: 'Old Account' }])
+
+    # wait for the batch to complete, then refresh data
+    batch.refresh
+    batch.completed? # => true
+
+    # get the results for each row
+    batch.results.each do |result|
+      puts result.id      # Id of the result
+      puts result.success # row successfully processed
+      puts result.error   # error for row
+    end
 
 ## Development
 
@@ -30,7 +65,7 @@ To install this gem onto your local machine, run `bundle exec rake install`. To 
 
 ## Contributing
 
-Bug reports and pull requests are welcome on GitHub at https://github.com/[USERNAME]/restforce-bulk. This project is intended to be a safe, welcoming space for collaboration, and contributors are expected to adhere to the [Contributor Covenant](contributor-covenant.org) code of conduct.
+Bug reports and pull requests are welcome on GitHub at https://github.com/dtmtec/restforce-bulk. This project is intended to be a safe, welcoming space for collaboration, and contributors are expected to adhere to the [Contributor Covenant](contributor-covenant.org) code of conduct.
 
 
 ## License
