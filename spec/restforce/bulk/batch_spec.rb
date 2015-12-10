@@ -43,4 +43,59 @@ describe Restforce::Bulk::Batch, mock_restforce: true do
       expect(batch.number_records_processed).to eq(response_body.batchInfo.numberRecordsProcessed)
     end
   end
+
+  describe "state" do
+    let(:state)     { 'Queued' }
+    subject(:batch) { described_class.new(state: state) }
+
+    context "when it is 'Queued'" do
+      let(:state) { 'Queued' }
+
+      it { is_expected.to be_queued }
+      it { is_expected.to_not be_in_progress }
+      it { is_expected.to_not be_completed }
+      it { is_expected.to_not be_failed }
+      it { is_expected.to_not be_not_processed }
+    end
+
+    context "when it is 'InProgress'" do
+      let(:state) { 'InProgress' }
+
+      it { is_expected.to_not be_queued }
+      it { is_expected.to be_in_progress }
+      it { is_expected.to_not be_completed }
+      it { is_expected.to_not be_failed }
+      it { is_expected.to_not be_not_processed }
+    end
+
+    context "when it is 'Completed'" do
+      let(:state) { 'Completed' }
+
+      it { is_expected.to_not be_queued }
+      it { is_expected.to_not be_in_progress }
+      it { is_expected.to be_completed }
+      it { is_expected.to_not be_failed }
+      it { is_expected.to_not be_not_processed }
+    end
+
+    context "when it is 'Failed'" do
+      let(:state) { 'Failed' }
+
+      it { is_expected.to_not be_queued }
+      it { is_expected.to_not be_in_progress }
+      it { is_expected.to_not be_completed }
+      it { is_expected.to be_failed }
+      it { is_expected.to_not be_not_processed }
+    end
+
+    context "when it is 'Not Processed'" do
+      let(:state) { 'Not Processed' }
+
+      it { is_expected.to_not be_queued }
+      it { is_expected.to_not be_in_progress }
+      it { is_expected.to_not be_completed }
+      it { is_expected.to_not be_failed }
+      it { is_expected.to be_not_processed }
+    end
+  end
 end

@@ -28,6 +28,26 @@ module Restforce
       def initialize(attributes={})
         assign_attributes(attributes)
       end
+
+      def queued?
+        state == 'Queued'
+      end
+
+      def in_progress?
+        state == 'InProgress'
+      end
+
+      def completed?
+        state == 'Completed'
+      end
+
+      def failed?
+        state == 'Failed'
+      end
+
+      def not_processed?
+        state == 'Not Processed'
+      end
     end
   end
 end
