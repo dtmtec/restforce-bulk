@@ -1,5 +1,10 @@
 # Restforce::Bulk
 
+[![build status][1]][2]
+
+[1]: https://travis-ci.org/dtmtec/restforce-bulk.svg
+
+
 Client for Salesforce Bulk API.
 
 ## Installation
