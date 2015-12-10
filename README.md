@@ -3,6 +3,7 @@
 [![build status][1]][2]
 
 [1]: https://travis-ci.org/dtmtec/restforce-bulk.svg
+[2]: http://travis-ci.org/dtmtec/restforce-bulk
 
 
 Client for Salesforce Bulk API.
