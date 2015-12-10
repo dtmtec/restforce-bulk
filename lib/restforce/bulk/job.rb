@@ -1,6 +1,8 @@
 module Restforce
   module Bulk
     class Job
+      include Restforce::Bulk::Attributes
+
       JOB_CONTENT_TYPE_MAPPING = {
         csv: 'CSV',
         xml: 'XML',
@@ -29,9 +31,7 @@ module Restforce
                     :system_modstamp, :state, :content_type
 
       def initialize(attributes={})
-        attributes.each do |attr, value|
-          send("#{attr.to_s.underscore}=", value) if respond_to?("#{attr.to_s.underscore}=")
-        end
+        assign_attributes(attributes)
 
         @batches = []
       end
@@ -56,6 +56,22 @@ module Restforce
         Restforce::Bulk::Batch.create(id, data, operation, content_type).tap do |batch|
           batches << batch
         end
+      end
+
+      def close
+        builder = Restforce::Bulk::Builder::Xml.new(operation)
+
+        response = Restforce::Bulk.client.perform_request(:post, "job/#{id}", builder.close)
+
+        assign_attributes(response.body.jobInfo)
+      end
+
+      def abort
+        builder = Restforce::Bulk::Builder::Xml.new(operation)
+
+        response = Restforce::Bulk.client.perform_request(:post, "job/#{id}", builder.abort)
+
+        assign_attributes(response.body.jobInfo)
       end
     end
   end

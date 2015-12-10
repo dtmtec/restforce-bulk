@@ -10,6 +10,8 @@ module Restforce
     autoload :Job,    'restforce/bulk/job'
     autoload :Batch,  'restforce/bulk/batch'
 
+    autoload :Attributes, 'restforce/bulk/attributes'
+
     module Builder
       autoload :Xml, 'restforce/bulk/builder/xml'
       autoload :Csv, 'restforce/bulk/builder/csv'

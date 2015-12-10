@@ -16,6 +16,18 @@ module Restforce
           end
         end
 
+        def close
+          build_xml(:jobInfo) do |xml|
+            xml.state 'Closed'
+          end
+        end
+
+        def abort
+          build_xml(:jobInfo) do |xml|
+            xml.state 'Aborted'
+          end
+        end
+
         def transform(data, operation)
           operation == 'query' ? query(data) : generate(data)
         end

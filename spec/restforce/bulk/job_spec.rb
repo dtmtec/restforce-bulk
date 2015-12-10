@@ -319,4 +319,76 @@ describe Restforce::Bulk::Job, mock_restforce: true do
       end
     end
   end
+
+  describe "#close" do
+    subject(:job) { described_class.new(id: 'ABC123', state: 'Open') }
+
+    let(:post_data) do
+      build_bulk_xml(:jobInfo) do |xml|
+        xml.state 'Closed'
+      end
+    end
+
+    let(:raw_response_body) do
+      build_bulk_xml(:jobInfo) do |xml|
+        xml.id             job.id
+        xml.operation      'upsert'
+        xml.object         'Lead'
+        xml.createdById    '005D0000001ALVFIA4'
+        xml.createdDate    '2009-04-14T18:15:59.000Z'
+        xml.systemModstamp '2009-04-14T18:15:59.000Z'
+        xml.state          'Closed'
+        xml.contentType    'XML'
+      end
+    end
+
+    it "closes the job in salesforce" do
+      expect_restforce_request(:post, "job/#{job.id}", post_data).and_return(restforce_response)
+
+      job.close
+    end
+
+    it "updates job with the returned data" do
+      expect_restforce_request(:post, "job/#{job.id}", post_data).and_return(restforce_response)
+
+      job.close
+      expect(job.state).to eq('Closed')
+    end
+  end
+
+  describe "#abort" do
+    subject(:job) { described_class.new(id: 'ABC123', state: 'Open') }
+
+    let(:post_data) do
+      build_bulk_xml(:jobInfo) do |xml|
+        xml.state 'Aborted'
+      end
+    end
+
+    let(:raw_response_body) do
+      build_bulk_xml(:jobInfo) do |xml|
+        xml.id             job.id
+        xml.operation      'upsert'
+        xml.object         'Lead'
+        xml.createdById    '005D0000001ALVFIA4'
+        xml.createdDate    '2009-04-14T18:15:59.000Z'
+        xml.systemModstamp '2009-04-14T18:15:59.000Z'
+        xml.state          'Aborted'
+        xml.contentType    'XML'
+      end
+    end
+
+    it "aborts the job in salesforce" do
+      expect_restforce_request(:post, "job/#{job.id}", post_data).and_return(restforce_response)
+
+      job.abort
+    end
+
+    it "updates job with the returned data" do
+      expect_restforce_request(:post, "job/#{job.id}", post_data).and_return(restforce_response)
+
+      job.abort
+      expect(job.state).to eq('Aborted')
+    end
+  end
 end
