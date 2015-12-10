@@ -70,11 +70,13 @@ describe Restforce::Bulk::Job, mock_restforce: true do
   end
 
   describe "#add_batch(data)" do
-    let(:object_name) { 'Account' }
-    let(:operation)   { 'query' }
-    subject(:job) { described_class.new(id: 'ABC123', operation: operation, object: object_name) }
+    let(:object_name)  { 'Account' }
+    let(:operation)    { 'query' }
+    let(:content_type) { 'XML' }
+    subject(:job) { described_class.new(id: 'ABC123', operation: operation, object: object_name, content_type: content_type) }
 
     let(:data) { "select Id from Account" }
+    let(:post_data) { data }
 
     let(:raw_response_body) do
       build_bulk_xml(:batchInfo) do |xml|
@@ -90,13 +92,13 @@ describe Restforce::Bulk::Job, mock_restforce: true do
 
     context "when operation is 'query'" do
       it "creates the batch in salesforce" do
-        expect_restforce_request(:post, "job/#{job.id}/batch", data).and_return(restforce_response)
+        expect_restforce_request(:post, "job/#{job.id}/batch", post_data).and_return(restforce_response)
 
         job.add_batch(data)
       end
 
       it "properly initializes the batch with the returned attributes" do
-        allow_restforce_request(:post, "job/#{job.id}/batch", data).and_return(restforce_response)
+        allow_restforce_request(:post, "job/#{job.id}/batch", post_data).and_return(restforce_response)
 
         batch = job.add_batch(data)
         expect(batch.id).to                       eq(response_body.batchInfo.id)
@@ -108,10 +110,105 @@ describe Restforce::Bulk::Job, mock_restforce: true do
       end
 
       it "adds the batch to the batches list" do
-        allow_restforce_request(:post, "job/#{job.id}/batch", data).and_return(restforce_response)
+        allow_restforce_request(:post, "job/#{job.id}/batch", post_data).and_return(restforce_response)
 
         batch = job.add_batch(data)
         expect(job.batches).to include(batch)
+      end
+
+      context "when job content type is CSV" do
+        let(:content_type) { 'CSV' }
+
+        it "creates the batch in salesforce, with the proper content type" do
+          expect_restforce_request(:post, "job/#{job.id}/batch", data, :csv).and_return(restforce_response)
+
+          job.add_batch(data)
+        end
+      end
+    end
+
+    shared_examples_for "crud batch" do
+      let(:data) { [{ Name: 'Some Name', Description: 'Desc 1' }, { Name: 'Some Other Name', Description: 'Desc 1' }] }
+
+      let(:post_data) do
+        build_bulk_xml(:sObjects) do |xml|
+          data.each do |item|
+            xml.sObject do
+              item.each do |attr, value|
+                xml.send(attr, value)
+              end
+            end
+          end
+        end
+      end
+
+      it "creates the batch in salesforce" do
+        expect_restforce_request(:post, "job/#{job.id}/batch", post_data).and_return(restforce_response)
+
+        job.add_batch(data)
+      end
+
+      it "properly initializes the batch with the returned attributes" do
+        allow_restforce_request(:post, "job/#{job.id}/batch", post_data).and_return(restforce_response)
+
+        batch = job.add_batch(data)
+        expect(batch.id).to                       eq(response_body.batchInfo.id)
+        expect(batch.job_id).to                   eq(response_body.batchInfo.jobId)
+        expect(batch.state).to                    eq(response_body.batchInfo.state)
+        expect(batch.created_date).to             eq(response_body.batchInfo.createdDate)
+        expect(batch.system_modstamp).to          eq(response_body.batchInfo.systemModstamp)
+        expect(batch.number_records_processed).to eq(response_body.batchInfo.numberRecordsProcessed)
+      end
+
+      it "adds the batch to the batches list" do
+        allow_restforce_request(:post, "job/#{job.id}/batch", post_data).and_return(restforce_response)
+
+        batch = job.add_batch(data)
+        expect(job.batches).to include(batch)
+      end
+
+      context "when job content type is CSV" do
+        let(:content_type) { 'CSV' }
+
+        let(:post_data) do
+          CSV.generate do |csv|
+            csv << data.first.keys
+
+            data.each do |attributes|
+              csv << attributes.values
+            end
+          end
+        end
+
+        it "creates the batch in salesforce, with the proper content type" do
+          expect_restforce_request(:post, "job/#{job.id}/batch", post_data, :csv).and_return(restforce_response)
+
+          job.add_batch(data)
+        end
+      end
+    end
+
+    context "when operation is 'insert'" do
+      it_behaves_like "crud batch" do
+        let(:operation) { 'insert' }
+      end
+    end
+
+    context "when operation is 'update'" do
+      it_behaves_like "crud batch" do
+        let(:operation) { 'update' }
+      end
+    end
+
+    context "when operation is 'upsert'" do
+      it_behaves_like "crud batch" do
+        let(:operation) { 'upsert' }
+      end
+    end
+
+    context "when operation is 'delete'" do
+      it_behaves_like "crud batch" do
+        let(:operation) { 'delete' }
       end
     end
   end

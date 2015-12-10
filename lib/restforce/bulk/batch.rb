@@ -1,14 +1,17 @@
 module Restforce
   module Bulk
     class Batch
-      include Restforce::Bulk::XmlBuilder
-      extend Restforce::Bulk::XmlBuilder
-
       class << self
         def create(job_id, data, operation, content_type=:xml)
-          response = Restforce::Bulk.client.perform_request(:post, "job/#{job_id}/batch", data)
+          builder  = builder_class_for(content_type).new(operation)
+
+          response = Restforce::Bulk.client.perform_request(:post, "job/#{job_id}/batch", builder.transform(data, operation), content_type)
 
           new(response.body.batchInfo)
+        end
+
+        def builder_class_for(content_type)
+          Restforce::Bulk::Builder.const_get(content_type.to_s.camelize)
         end
       end
 

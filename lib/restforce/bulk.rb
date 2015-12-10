@@ -10,7 +10,10 @@ module Restforce
     autoload :Job,    'restforce/bulk/job'
     autoload :Batch,  'restforce/bulk/batch'
 
-    autoload :XmlBuilder, 'restforce/bulk/xml_builder'
+    module Builder
+      autoload :Xml, 'restforce/bulk/builder/xml'
+      autoload :Csv, 'restforce/bulk/builder/csv'
+    end
 
     MIME_TYPE_MAPPING = {
       csv: 'text/csv',

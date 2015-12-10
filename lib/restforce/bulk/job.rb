@@ -1,9 +1,6 @@
 module Restforce
   module Bulk
     class Job
-      include Restforce::Bulk::XmlBuilder
-      extend Restforce::Bulk::XmlBuilder
-
       JOB_CONTENT_TYPE_MAPPING = {
         csv: 'CSV',
         xml: 'XML',
@@ -13,11 +10,8 @@ module Restforce
 
       class << self
         def create(operation, object_name, content_type=:xml)
-          data = build_xml(:jobInfo) do |xml|
-            xml.operation operation
-            xml.object object_name
-            xml.contentType JOB_CONTENT_TYPE_MAPPING[content_type.to_sym]
-          end
+          builder  = Restforce::Bulk::Builder::Xml.new(operation)
+          data     = builder.job(object_name, JOB_CONTENT_TYPE_MAPPING[content_type.to_sym])
 
           response = Restforce::Bulk.client.perform_request(:post, 'job', data)
 
