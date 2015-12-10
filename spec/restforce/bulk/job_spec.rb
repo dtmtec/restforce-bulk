@@ -67,6 +67,114 @@ describe Restforce::Bulk::Job, mock_restforce: true do
       job = Restforce::Bulk::Job.create(operation, object_name)
       expect(job.content_type).to eq(:xml)
     end
+
+    context "when content type is passed as :csv" do
+      let(:operation_content_type) { 'CSV' }
+
+      it "properly initializes content_type" do
+        allow_restforce_request(:post, 'job', xml_data).and_return(restforce_response)
+
+        job = Restforce::Bulk::Job.create(operation, object_name, :csv)
+        expect(job.content_type).to eq(:csv)
+      end
+    end
+  end
+
+  describe ".find(id)" do
+    let(:id) { SecureRandom.hex(18) }
+
+    let(:operation_content_type) { 'XML' }
+
+    let(:raw_response_body) do
+      build_bulk_xml(:jobInfo) do |xml|
+        xml.id             id
+        xml.operation      'update'
+        xml.object         'Lead'
+        xml.createdById    '005D0000001ALVFIA4'
+        xml.createdDate    '2009-04-14T18:15:59.000Z'
+        xml.systemModstamp '2009-04-14T18:15:59.000Z'
+        xml.state          'Closed'
+        xml.contentType    operation_content_type
+      end
+    end
+
+    it "retrieves job info from salesforce using the given id" do
+      expect_restforce_request(:get, "job/#{id}").and_return(restforce_response)
+
+      job = Restforce::Bulk::Job.find(id)
+    end
+
+    it "returns the job initialized with the returned attributes" do
+      allow_restforce_request(:get, "job/#{id}").and_return(restforce_response)
+
+      job = Restforce::Bulk::Job.find(id)
+
+      expect(job.id).to              eq(response_body.jobInfo.id)
+      expect(job.operation).to       eq(response_body.jobInfo.operation)
+      expect(job.object).to          eq(response_body.jobInfo.object)
+      expect(job.created_by_id).to   eq(response_body.jobInfo.createdById)
+      expect(job.created_date).to    eq(response_body.jobInfo.createdDate)
+      expect(job.system_modstamp).to eq(response_body.jobInfo.systemModstamp)
+      expect(job.state).to           eq(response_body.jobInfo.state)
+    end
+
+    it "properly initializes content_type" do
+      allow_restforce_request(:get, "job/#{id}").and_return(restforce_response)
+
+      job = Restforce::Bulk::Job.find(id)
+      expect(job.content_type).to eq(:xml)
+    end
+
+    context "when content type is CSV" do
+      let(:operation_content_type) { 'CSV' }
+
+      it "properly initializes content_type" do
+        allow_restforce_request(:get, "job/#{id}").and_return(restforce_response)
+
+        job = Restforce::Bulk::Job.find(id)
+        expect(job.content_type).to eq(:csv)
+      end
+    end
+  end
+
+  describe "#reload_batches" do
+    subject(:job) { described_class.new(id: SecureRandom.hex(18)) }
+
+    let(:batches) do
+      [
+        { id: SecureRandom.hex(18), job_id: job.id, state: 'Queued' },
+        { id: SecureRandom.hex(18), job_id: job.id, state: 'InProgress' },
+        { id: SecureRandom.hex(18), job_id: job.id, state: 'Completed' },
+      ]
+    end
+
+    let(:raw_response_body) do
+      build_bulk_xml(:batchInfoList) do |xml|
+        batches.each do |batch|
+          xml.batchInfo do
+            xml.id             batch[:id]
+            xml.jobId          batch[:job_id]
+            xml.state          batch[:state]
+          end
+        end
+      end
+    end
+
+    it "retrieves information for job batches from salesforce" do
+      expect_restforce_request(:get, "job/#{job.id}/batch").and_return(restforce_response)
+
+      job.reload_batches
+    end
+
+    it "properly populates batches" do
+      allow_restforce_request(:get, "job/#{job.id}/batch").and_return(restforce_response)
+
+      job.reload_batches
+
+      expect(job.batches.size).to eq(batches.size)
+
+      expect(job.batches.map(&:id)).to eq(batches.map { |batch| batch[:id] })
+    end
   end
 
   describe "#add_batch(data)" do
@@ -82,7 +190,6 @@ describe Restforce::Bulk::Job, mock_restforce: true do
       build_bulk_xml(:batchInfo) do |xml|
         xml.id                     SecureRandom.hex(18)
         xml.jobId                  job.id
-        xml.state                  'Queued'
         xml.createdDate            '2009-04-14T18:15:59.000Z'
         xml.systemModstamp         '2009-04-14T18:15:59.000Z'
         xml.state                  'Open'

@@ -17,6 +17,12 @@ module Restforce
 
           new(response.body.jobInfo)
         end
+
+        def find(id)
+          response = Restforce::Bulk.client.perform_request(:get, "job/#{id}")
+
+          new(response.body.jobInfo)
+        end
       end
 
       attr_accessor :id, :operation, :object, :created_by_id, :created_date,
@@ -36,6 +42,14 @@ module Restforce
 
       def batches
         @batches
+      end
+
+      def reload_batches
+        response = Restforce::Bulk.client.perform_request(:get, "job/#{id}/batch")
+
+        @batches = response.body.batchInfoList.batchInfo.map do |batchInfo|
+          Restforce::Bulk::Batch.new(batchInfo)
+        end
       end
 
       def add_batch(data)
