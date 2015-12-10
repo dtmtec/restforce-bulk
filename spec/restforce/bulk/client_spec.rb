@@ -1,7 +1,7 @@
 require "spec_helper"
 
 describe Restforce::Bulk::Client do
-  let(:restforce_client) { double(Restforce, authenticate!: true, middleware: double('Middleware', insert_after: true, response: true), options: {}) }
+  let(:restforce_client) { double(Restforce, authenticate!: true, middleware: double('Middleware', use: true, insert_after: true, response: true), options: {}) }
 
   it "uses a default client connection" do
     allow(Restforce).to receive(:new).with(no_args).and_return(restforce_client)

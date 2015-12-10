@@ -14,7 +14,7 @@ module RestforceMockHelpers
   def restforce_client
     @restforce_client ||= double(Restforce, {
       authenticate!: true,
-      middleware: double('Middleware', insert_after: true, response: true),
+      middleware: double('Middleware', use: true, insert_after: true, response: true),
       options: { api_version: '29.0', oauth_token: SecureRandom.hex }
     })
   end

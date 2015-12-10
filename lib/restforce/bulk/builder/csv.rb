@@ -1,5 +1,3 @@
-require "csv"
-
 module Restforce
   module Bulk
     module Builder

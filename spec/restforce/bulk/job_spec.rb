@@ -148,6 +148,12 @@ describe Restforce::Bulk::Job, mock_restforce: true do
       ]
     end
 
+    # Salesforce Bulk API does not return the response with a proper content-type
+    # so we need to force XML parsing for this
+    let(:response_body) do
+      raw_response_body
+    end
+
     let(:raw_response_body) do
       build_bulk_xml(:batchInfoList) do |xml|
         batches.each do |batch|
@@ -174,6 +180,22 @@ describe Restforce::Bulk::Job, mock_restforce: true do
       expect(job.batches.size).to eq(batches.size)
 
       expect(job.batches.map(&:id)).to eq(batches.map { |batch| batch[:id] })
+    end
+
+    context "when only one batch is returned" do
+      let(:batches) do
+        [
+          { id: SecureRandom.hex(18), job_id: job.id, state: 'Queued' }
+        ]
+      end
+
+      it "properly populates batches" do
+        allow_restforce_request(:get, "job/#{job.id}/batch").and_return(restforce_response)
+
+        job.reload_batches
+
+        expect(job.batches.size).to eq(1)
+      end
     end
   end
 

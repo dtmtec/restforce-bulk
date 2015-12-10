@@ -48,6 +48,21 @@ module Restforce
       def not_processed?
         state == 'Not Processed'
       end
+
+      def results
+        response = Restforce::Bulk.client.perform_request(:get, "job/#{job_id}/batch/#{id}/result")
+        parser   = results_parser_for(response.body).new
+
+        parser.results_on(response.body).map do |result|
+          Restforce::Bulk::Result.new({job_id: job_id, batch_id: id}.merge(result))
+        end
+      end
+
+      protected
+
+      def results_parser_for(body)
+        body.is_a?(CSV::Table) ? Restforce::Bulk::Parser::Csv : Restforce::Bulk::Parser::Xml
+      end
     end
   end
 end

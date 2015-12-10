@@ -1,5 +1,9 @@
+require "csv"
 require "multi_xml"
 require "nokogiri"
+require "faraday"
+require "faraday_middleware"
+require "faraday_middleware/response_middleware"
 require "restforce"
 require "restforce/bulk/version"
 require "active_support/inflector"
@@ -9,6 +13,7 @@ module Restforce
     autoload :Client, 'restforce/bulk/client'
     autoload :Job,    'restforce/bulk/job'
     autoload :Batch,  'restforce/bulk/batch'
+    autoload :Result, 'restforce/bulk/result'
 
     autoload :Attributes, 'restforce/bulk/attributes'
 
@@ -17,8 +22,14 @@ module Restforce
       autoload :Csv, 'restforce/bulk/builder/csv'
     end
 
+    module Parser
+      autoload :Xml, 'restforce/bulk/parser/xml'
+      autoload :Csv, 'restforce/bulk/parser/csv'
+    end
+
     module Middleware
       autoload :Authorization, 'restforce/bulk/middleware/authorization'
+      autoload :ParseCsv,      'restforce/bulk/middleware/parse_csv'
     end
 
     MIME_TYPE_MAPPING = {

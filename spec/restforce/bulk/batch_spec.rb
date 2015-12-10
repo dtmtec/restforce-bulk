@@ -98,4 +98,171 @@ describe Restforce::Bulk::Batch, mock_restforce: true do
       it { is_expected.to be_not_processed }
     end
   end
+
+  describe "#results" do
+    subject(:batch) { described_class.new(id: SecureRandom.hex(18), job_id: SecureRandom.hex(18)) }
+
+    let(:results) do
+      [
+        { id: SecureRandom.hex(18), success: true, created: true },
+        { id: SecureRandom.hex(18), success: false, created: false, error: "Some Error" },
+        { id: SecureRandom.hex(18), success: true, created: true }
+      ]
+    end
+
+    let(:raw_response_body) do
+      build_bulk_xml(:results) do |xml|
+        results.each do |result|
+          xml.result do
+            xml.id      result[:id]
+            xml.success result[:success]
+            xml.created result[:created]
+            xml.error   result[:error]
+          end
+        end
+      end
+    end
+
+    it "retrieves batch results from salesforce" do
+      expect_restforce_request(:get, "job/#{batch.job_id}/batch/#{batch.id}/result").and_return(restforce_response)
+
+      batch.results
+    end
+
+    it "properly returns result objects" do
+      allow_restforce_request(:get, "job/#{batch.job_id}/batch/#{batch.id}/result").and_return(restforce_response)
+
+      returned_results = batch.results
+      expect(batch.results.size).to eq(results.size)
+
+      expect(returned_results.map(&:id)     ).to eq(results.map { |result| result[:id] })
+      expect(returned_results.map(&:success)).to eq(results.map { |result| result[:success].to_s })
+      expect(returned_results.map(&:created)).to eq(results.map { |result| result[:created].to_s })
+      expect(returned_results.map(&:error)  ).to eq(results.map { |result| result[:error] })
+    end
+
+    it "properly sets job_id on result objects" do
+      allow_restforce_request(:get, "job/#{batch.job_id}/batch/#{batch.id}/result").and_return(restforce_response)
+
+      returned_results = batch.results
+      expect(batch.results.map(&:job_id)).to eq(results.size.times.map { batch.job_id })
+    end
+
+    it "properly sets batch_id on result objects" do
+      allow_restforce_request(:get, "job/#{batch.job_id}/batch/#{batch.id}/result").and_return(restforce_response)
+
+      returned_results = batch.results
+      expect(batch.results.map(&:batch_id)).to eq(results.size.times.map { batch.id })
+    end
+
+    context "when there is only one result" do
+      let(:results) do
+        [
+          { id: SecureRandom.hex(18), success: true, created: true }
+        ]
+      end
+
+      it "properly returns result objects" do
+        allow_restforce_request(:get, "job/#{batch.job_id}/batch/#{batch.id}/result").and_return(restforce_response)
+
+        returned_results = batch.results
+        expect(batch.results.size).to eq(results.size)
+
+        expect(returned_results.map(&:id)     ).to eq(results.map { |result| result[:id] })
+        expect(returned_results.map(&:success)).to eq(results.map { |result| result[:success].to_s })
+        expect(returned_results.map(&:created)).to eq(results.map { |result| result[:created].to_s })
+        expect(returned_results.map(&:error)  ).to eq(results.map { |result| result[:error] })
+      end
+
+      it "properly sets job_id on result objects" do
+        allow_restforce_request(:get, "job/#{batch.job_id}/batch/#{batch.id}/result").and_return(restforce_response)
+
+        returned_results = batch.results
+        expect(batch.results.map(&:job_id)).to eq(results.size.times.map { batch.job_id })
+      end
+
+      it "properly sets batch_id on result objects" do
+        allow_restforce_request(:get, "job/#{batch.job_id}/batch/#{batch.id}/result").and_return(restforce_response)
+
+        returned_results = batch.results
+        expect(batch.results.map(&:batch_id)).to eq(results.size.times.map { batch.id })
+      end
+    end
+
+    context "when the returned XML is for a query operation" do
+      let(:id) { SecureRandom.hex(18) }
+
+      # The query results list is returned in a different way
+      let(:raw_response_body) do
+        build_bulk_xml('result-list') do |xml|
+          xml.result id
+        end
+      end
+
+      it "properly parses the returned XML, creating only one result, with the Id filled" do
+        allow_restforce_request(:get, "job/#{batch.job_id}/batch/#{batch.id}/result").and_return(restforce_response)
+
+        expect(batch.results.size).to eq(1)
+        result = batch.results.first
+
+        expect(result.id).to eq(id)
+      end
+
+      it "properly sets job_id on result objects" do
+        allow_restforce_request(:get, "job/#{batch.job_id}/batch/#{batch.id}/result").and_return(restforce_response)
+
+        result = batch.results.first
+        expect(result.job_id).to eq(batch.job_id)
+      end
+
+      it "properly sets batch_id on result objects" do
+        allow_restforce_request(:get, "job/#{batch.job_id}/batch/#{batch.id}/result").and_return(restforce_response)
+
+        result = batch.results.first
+        expect(result.job_id).to eq(batch.job_id)
+      end
+    end
+
+    context "when content type is CSV" do
+      let(:response_body) do
+        ::CSV.parse(raw_response_body, headers: true)
+      end
+
+      let(:raw_response_body) do
+        CSV.generate do |csv|
+          csv << ["Id", "Success", "Created", "Error"]
+
+          results.each do |result|
+            csv << [result[:id], result[:success], result[:created], result[:error]]
+          end
+        end
+      end
+
+      it "properly returns result objects" do
+        allow_restforce_request(:get, "job/#{batch.job_id}/batch/#{batch.id}/result").and_return(restforce_response)
+
+        returned_results = batch.results
+        expect(batch.results.size).to eq(results.size)
+
+        expect(returned_results.map(&:id)     ).to eq(results.map { |result| result[:id] })
+        expect(returned_results.map(&:success)).to eq(results.map { |result| result[:success].to_s })
+        expect(returned_results.map(&:created)).to eq(results.map { |result| result[:created].to_s })
+        expect(returned_results.map(&:error)  ).to eq(results.map { |result| result[:error] })
+      end
+
+      it "properly sets job_id on result objects" do
+        allow_restforce_request(:get, "job/#{batch.job_id}/batch/#{batch.id}/result").and_return(restforce_response)
+
+        returned_results = batch.results
+        expect(batch.results.map(&:job_id)).to eq(results.size.times.map { batch.job_id })
+      end
+
+      it "properly sets batch_id on result objects" do
+        allow_restforce_request(:get, "job/#{batch.job_id}/batch/#{batch.id}/result").and_return(restforce_response)
+
+        returned_results = batch.results
+        expect(batch.results.map(&:batch_id)).to eq(results.size.times.map { batch.id })
+      end
+    end
+  end
 end

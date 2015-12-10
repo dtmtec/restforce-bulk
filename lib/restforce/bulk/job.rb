@@ -46,9 +46,10 @@ module Restforce
 
       def reload_batches
         response = Restforce::Bulk.client.perform_request(:get, "job/#{id}/batch")
+        parser   = Restforce::Bulk::Parser::Xml.new
 
-        @batches = response.body.batchInfoList.batchInfo.map do |batchInfo|
-          Restforce::Bulk::Batch.new(batchInfo)
+        @batches = parser.batches(response.body).map do |batch_info|
+          Restforce::Bulk::Batch.new(batch_info)
         end
       end
 
