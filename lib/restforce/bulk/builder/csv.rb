@@ -8,7 +8,7 @@ module Restforce
           self.operation = operation
         end
 
-        def transform(data, operation)
+        def transform(data, operation, content_type)
           operation == 'query' ? query(data) : generate(data)
         end
 

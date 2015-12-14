@@ -28,7 +28,7 @@ module Restforce
           end
         end
 
-        def transform(data, operation)
+        def transform(data, operation, content_type)
           operation == 'query' ? query(data) : generate(data)
         end
 
@@ -50,10 +50,10 @@ module Restforce
 
         protected
 
-        def build_xml(root, &block)
+        def build_xml(root, options={}, &block)
           Nokogiri::XML::Builder.new { |xml|
-            xml.send(root, xmlns: 'http://www.force.com/2009/06/asyncapi/dataload', &block)
-          }.to_xml
+            xml.send(root, { xmlns: 'http://www.force.com/2009/06/asyncapi/dataload' }.merge(options), &block)
+          }.to_xml(encoding: 'UTF-8')
         end
       end
     end

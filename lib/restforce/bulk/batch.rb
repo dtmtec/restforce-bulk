@@ -7,7 +7,7 @@ module Restforce
         def create(job_id, data, operation, content_type=:xml)
           builder  = builder_class_for(content_type).new(operation)
 
-          response = Restforce::Bulk.client.perform_request(:post, "job/#{job_id}/batch", builder.transform(data, operation), content_type)
+          response = Restforce::Bulk.client.perform_request(:post, "job/#{job_id}/batch", builder.transform(data, operation, content_type), content_type)
 
           new(response.body.batchInfo)
         end

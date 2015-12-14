@@ -10,6 +10,8 @@ require 'bundler/setup'
 Bundler.require
 require 'restforce/bulk'
 
+ROOT_PATH = File.expand_path('../..', __FILE__)
+
 module RestforceMockHelpers
   def restforce_client
     @restforce_client ||= double(Restforce, {
@@ -48,7 +50,7 @@ module RestforceMockHelpers
   def build_bulk_xml(root, options={}, &block)
     Nokogiri::XML::Builder.new do |xml|
       xml.send(root, { xmlns: 'http://www.force.com/2009/06/asyncapi/dataload' }.merge(options), &block)
-    end.to_xml
+    end.to_xml(encoding: 'UTF-8')
   end
 
   def build_restforce_response(status, body)
@@ -56,11 +58,34 @@ module RestforceMockHelpers
   end
 end
 
+module FileHelpers
+  def file_fixture(filename)
+    File.join(ROOT_PATH, 'spec/file_fixtures', filename)
+  end
+end
+
+module RandomHelpers
+  def default_random
+    @default_random ||= SecureRandom.hex
+  end
+end
+
 RSpec.configure do |config|
+  config.include FileHelpers
+  config.include RandomHelpers
   config.include RestforceMockHelpers, mock_restforce: true
 
   config.before(:each, mock_restforce: true) do
     Restforce::Bulk.client = nil
     allow(Restforce).to receive(:new).and_return(restforce_client)
+  end
+
+  config.before(:each) do
+    FileUtils.rm_rf File.join(ROOT_PATH, 'tmp', '*')
+    FileUtils.mkdir_p File.join(ROOT_PATH, 'tmp')
+  end
+
+  config.before(:each, mock_random: true) do
+    allow(SecureRandom).to receive(:hex).and_return(default_random)
   end
 end

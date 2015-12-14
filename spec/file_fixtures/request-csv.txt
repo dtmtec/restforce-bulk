@@ -1,0 +1,3 @@
+Name,ParentId,Body
+image.jpg,ABC123,#image.jpg
+subfolder/image.jpg,DEF987,#subfolder/image.jpg

@@ -1,0 +1,13 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<sObjects xmlns="http://www.force.com/2009/06/asyncapi/dataload" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance">
+  <sObject>
+    <Name>image.jpg</Name>
+    <ParentId>ABC123</ParentId>
+    <Body>#image.jpg</Body>
+  </sObject>
+  <sObject>
+    <Name>subfolder/image.jpg</Name>
+    <ParentId>DEF987</ParentId>
+    <Body>#subfolder/image.jpg</Body>
+  </sObject>
+</sObjects>

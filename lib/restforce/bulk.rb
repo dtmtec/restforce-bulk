@@ -7,6 +7,7 @@ require "faraday_middleware/response_middleware"
 require "restforce"
 require "restforce/bulk/version"
 require "active_support/inflector"
+require "zip"
 
 module Restforce
   module Bulk
@@ -17,9 +18,13 @@ module Restforce
 
     autoload :Attributes, 'restforce/bulk/attributes'
 
+    autoload :Zipper, 'restforce/bulk/zipper'
+
     module Builder
-      autoload :Xml, 'restforce/bulk/builder/xml'
-      autoload :Csv, 'restforce/bulk/builder/csv'
+      autoload :Xml,    'restforce/bulk/builder/xml'
+      autoload :Csv,    'restforce/bulk/builder/csv'
+      autoload :ZipXml, 'restforce/bulk/builder/zip_xml'
+      autoload :ZipCsv, 'restforce/bulk/builder/zip_csv'
     end
 
     module Parser

@@ -321,6 +321,52 @@ describe Restforce::Bulk::Job, mock_restforce: true do
       it_behaves_like "crud batch" do
         let(:operation) { 'insert' }
       end
+
+      context "and the batch is a binary attachment" do
+        let(:data) { [{ full_filename: file_fixture('attachments/image.jpg'), filename: 'image.jpg', parent_id: 'ABC123' }, { full_filename: file_fixture('attachments/subfolder/image.jpg'), filename: 'subfolder/image.jpg', parent_id: 'DEF987' }] }
+        let(:content_type) { :zip_xml }
+
+        let(:zipper) { Restforce::Bulk::Zipper.new(data, content_type) }
+
+        let(:post_data) do
+          File.read(zipper.zip)
+        end
+
+        it "creates the batch in salesforce" do
+          expect_restforce_request(:post, "job/#{job.id}/batch", post_data, content_type).and_return(restforce_response)
+
+          job.add_batch(data)
+        end
+
+        it "properly initializes the batch with the returned attributes" do
+          allow_restforce_request(:post, "job/#{job.id}/batch", post_data, content_type).and_return(restforce_response)
+
+          batch = job.add_batch(data)
+          expect(batch.id).to                       eq(response_body.batchInfo.id)
+          expect(batch.job_id).to                   eq(response_body.batchInfo.jobId)
+          expect(batch.state).to                    eq(response_body.batchInfo.state)
+          expect(batch.created_date).to             eq(response_body.batchInfo.createdDate)
+          expect(batch.system_modstamp).to          eq(response_body.batchInfo.systemModstamp)
+          expect(batch.number_records_processed).to eq(response_body.batchInfo.numberRecordsProcessed)
+        end
+
+        it "adds the batch to the batches list" do
+          allow_restforce_request(:post, "job/#{job.id}/batch", post_data, content_type).and_return(restforce_response)
+
+          batch = job.add_batch(data)
+          expect(job.batches).to include(batch)
+        end
+
+        context "when content type is zip/csv" do
+          let(:content_type) { :zip_csv }
+
+          it "properly creates the batch in salesforce using the given content type" do
+            expect_restforce_request(:post, "job/#{job.id}/batch", post_data, content_type).and_return(restforce_response)
+
+            job.add_batch(data)
+          end
+        end
+      end
     end
 
     context "when operation is 'update'" do
