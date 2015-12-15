@@ -50,7 +50,7 @@ Or install it yourself as:
     job = Restforce::Bulk::Job.create(:upsert, 'Account')
 
     # Adding a batch
-    batch = job.add_batch([{ Name: "New Account" }, { Id: 'a0B29000000XGxf', Name: 'Old Account' }])
+    batch = job.add_batch([{ Id: nil, Name: "New Account" }, { Id: 'a0B29000000XGxf', Name: 'Old Account' }])
 
     # wait for the batch to complete, then refresh data
     batch.refresh
