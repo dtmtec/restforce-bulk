@@ -30,7 +30,7 @@ describe Restforce::Bulk::Middleware::ParseCsv do
       end
     end
 
-    context "when response content type is not CSV" do
+    context "when response content type is CSV" do
       let(:env) { { request: {}, request_headers: {}, response_headers: { 'Content-Type' => 'text/csv' }, body: body } }
 
       it "parses the response from the app" do
