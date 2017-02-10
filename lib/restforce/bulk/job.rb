@@ -28,7 +28,11 @@ module Restforce
       end
 
       attr_accessor :id, :operation, :object, :created_by_id, :created_date,
-                    :system_modstamp, :state, :content_type
+                    :system_modstamp, :state, :content_type, :number_records_processed,
+                    :number_records_failed, :number_batches_in_progress,
+                    :number_batches_completed, :number_batches_failed,
+                    :number_batches_total
+
 
       def initialize(attributes={})
         assign_attributes(attributes)
