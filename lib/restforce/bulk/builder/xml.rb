@@ -4,14 +4,18 @@ module Restforce
       class Xml
         attr_accessor :operation
 
-        def initialize(operation)
+        def initialize(operation,options={})
           self.operation = operation
+          @options = options
         end
 
         def job(object_name, content_type)
           build_xml(:jobInfo) do |xml|
             xml.operation operation
             xml.object object_name
+            if @options[:externalIdFieldName]
+              xml.externalIdFieldName @options[:externalIdFieldName]
+            end
             xml.contentType content_type
           end
         end
