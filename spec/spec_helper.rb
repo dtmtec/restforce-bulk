@@ -5,6 +5,8 @@ SimpleCov.start do
   add_filter "/spec/"
 end
 
+require 'securerandom'
+
 require 'bundler/setup'
 
 Bundler.require
