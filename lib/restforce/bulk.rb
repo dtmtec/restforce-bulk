@@ -8,6 +8,7 @@ require "restforce"
 require "restforce/bulk/version"
 require "active_support/inflector"
 require "zip"
+require "securerandom"
 
 module Restforce
   module Bulk
