@@ -41,7 +41,7 @@ module Restforce
             data.each do |item|
               xml.sObject do
                 item.each do |attr, value|
-                  xml.send(attr, value)
+                  xml.send(attr, value, value.nil? ? {"xsi:nil" => true} : {})
                 end
               end
             end
@@ -52,7 +52,11 @@ module Restforce
 
         def build_xml(root, options={}, &block)
           Nokogiri::XML::Builder.new { |xml|
-            xml.send(root, { xmlns: 'http://www.force.com/2009/06/asyncapi/dataload' }.merge(options), &block)
+            namespaces = {
+              "xmlns" => 'http://www.force.com/2009/06/asyncapi/dataload',
+              "xmlns:xsi" => "http://www.w3.org/2001/XMLSchema-instance"
+            }
+            xml.send(root, namespaces.merge(options), &block)
           }.to_xml(encoding: 'UTF-8')
         end
       end

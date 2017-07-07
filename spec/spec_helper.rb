@@ -48,8 +48,12 @@ module RestforceMockHelpers
   end
 
   def build_bulk_xml(root, options={}, &block)
+    namespaces = {
+      "xmlns" => 'http://www.force.com/2009/06/asyncapi/dataload',
+      "xmlns:xsi" => "http://www.w3.org/2001/XMLSchema-instance"
+    }
     Nokogiri::XML::Builder.new do |xml|
-      xml.send(root, { xmlns: 'http://www.force.com/2009/06/asyncapi/dataload' }.merge(options), &block)
+      xml.send(root, namespaces.merge(options), &block)
     end.to_xml(encoding: 'UTF-8')
   end
 
