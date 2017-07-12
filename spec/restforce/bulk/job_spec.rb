@@ -2,6 +2,7 @@ require "spec_helper"
 
 describe Restforce::Bulk::Job, mock_restforce: true do
   let(:object_name) { 'Account' }
+  let(:external_id_field) { 'Name' }
 
   let(:raw_response_body) { '' }
 
@@ -19,6 +20,15 @@ describe Restforce::Bulk::Job, mock_restforce: true do
       build_bulk_xml(:jobInfo) do |xml|
         xml.operation operation
         xml.object object_name
+        xml.contentType operation_content_type
+      end
+    end
+
+    let(:xml_upsert) do
+      build_bulk_xml(:jobInfo) do |xml|
+        xml.operation operation
+        xml.object object_name
+        xml.externalIdFieldName external_id_field
         xml.contentType operation_content_type
       end
     end
@@ -76,6 +86,16 @@ describe Restforce::Bulk::Job, mock_restforce: true do
 
         job = Restforce::Bulk::Job.create(operation, object_name, :csv)
         expect(job.content_type).to eq(:csv)
+      end
+    end
+
+    context "with external_id" do
+      let(:operation) { 'upsert' }
+
+      it "adds an external id to xml if there is an external_id" do
+        expect_restforce_request(:post, "job", xml_upsert).and_return(restforce_response)
+
+        job = Restforce::Bulk::Job.create(operation, object_name, :xml, 'Name')
       end
     end
   end
