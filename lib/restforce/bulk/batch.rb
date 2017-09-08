@@ -21,7 +21,8 @@ module Restforce
         end
       end
 
-      attr_accessor :id, :job_id, :state, :created_date, :system_modstamp, :number_records_processed
+      attr_accessor :id, :job_id, :state, :created_date, :system_modstamp,
+                    :number_records_processed, :number_records_failed
 
       def initialize(attributes={})
         assign_attributes(attributes)
