@@ -22,7 +22,7 @@ Gem::Specification.new do |spec|
   spec.add_dependency "restforce", "~> 2.1"
   spec.add_dependency "nokogiri"
   spec.add_dependency "multi_xml"
-  spec.add_dependency "activesupport", "~> 4.2.4"
+  spec.add_dependency "activesupport", "> 4.2.4"
   spec.add_dependency "rubyzip", "~> 1.1.7"
 
   spec.add_development_dependency "bundler", "~> 1.10"
