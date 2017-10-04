@@ -13,7 +13,7 @@ module Restforce
             xml.operation operation
             xml.object object_name
             xml.externalIdFieldName external_id_field if external_id_field
-            xml.concurrencyMode if concurrency_mode
+            xml.concurrencyMode concurrency_mode if concurrency_mode
             xml.contentType content_type
           end
         end
