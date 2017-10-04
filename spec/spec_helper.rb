@@ -9,6 +9,7 @@ require 'bundler/setup'
 
 Bundler.require
 require 'restforce/bulk'
+require 'securerandom'
 
 ROOT_PATH = File.expand_path('../..', __FILE__)
 
